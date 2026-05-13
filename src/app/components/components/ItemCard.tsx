@@ -5,14 +5,30 @@ import { Badge } from './ui/badge';
 import { MapPin, Eye, Heart } from 'lucide-react';
 import { ImageDisplay } from './common/ImageDisplay';
 import { Button } from './ui/button';
-import { useState } from 'react';
+import { useFavorites } from '../../FavoritesContext';
+import { toast } from 'sonner';
 
 interface ItemCardProps {
   item: Item;
 }
 
 export function ItemCard({ item }: ItemCardProps) {
-  const [isFavorited, setIsFavorited] = useState(false);
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
+
+  const favorited = isFavorite(item.id);
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (favorited) {
+      removeFromFavorites(item.id);
+      toast.success(`Removed "${item.title}" from favorites`);
+    } else {
+      addToFavorites(item);
+      toast.success(`Added "${item.title}" to favorites`);
+    }
+  };
 
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition">
@@ -23,23 +39,22 @@ export function ItemCard({ item }: ItemCardProps) {
             alt={item.title}
             className="object-cover size-full group-hover:scale-105 transition duration-300"
           />
+
           {item.isSold && (
             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
               <Badge className="bg-white text-black">SOLD</Badge>
             </div>
           )}
+
           <Button
             size="icon"
             variant="ghost"
             className={`absolute top-2 right-2 size-8 rounded-full bg-white/90 hover:bg-white ${
-              isFavorited ? 'text-red-500' : 'text-neutral-600'
+              favorited ? 'text-red-500' : 'text-neutral-600'
             }`}
-            onClick={(e) => {
-              e.preventDefault();
-              setIsFavorited(!isFavorited);
-            }}
+            onClick={handleFavoriteClick}
           >
-            <Heart className={`size-4 ${isFavorited ? 'fill-current' : ''}`} />
+            <Heart className={`size-4 ${favorited ? 'fill-current' : ''}`} />
           </Button>
         </div>
       </Link>
