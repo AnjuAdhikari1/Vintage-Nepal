@@ -149,11 +149,12 @@ export function Header() {
             </Link>
             {isLoggedIn ? (
               <>
-                <Link to="/profile/1">
-                  <Button variant="ghost" size="icon" title={user?.name}>
-                    <User className="size-5" />
-                  </Button>
-                </Link>
+                {/* Opens the logged-in user's real Firebase profile */}
+<Link to="/profile/me">
+  <Button variant="ghost" size="icon" title={user?.name}>
+    <User className="size-5" />
+  </Button>
+</Link>
                 <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
                   <LogOut className="size-5" />
                 </Button>
@@ -211,12 +212,13 @@ export function Header() {
                   </Link>
                   {isLoggedIn ? (
                     <>
-                      <Link to="/profile/1">
-                        <Button variant="ghost" className="w-full justify-start">
-                          <User className="size-4 mr-2" />
-                          Profile
-                        </Button>
-                      </Link>
+                      {/* Opens the logged-in user's real Firebase profile on mobile */}
+<Link to="/profile/me">
+  <Button variant="ghost" className="w-full justify-start">
+    <User className="size-4 mr-2" />
+    Profile
+  </Button>
+</Link>
                       <Button variant="ghost" className="w-full justify-start" onClick={handleLogout}>
                         <LogOut className="size-4 mr-2" />
                         Logout
