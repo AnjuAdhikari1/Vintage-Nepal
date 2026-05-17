@@ -76,7 +76,7 @@ const recentItems = [...databaseItems, ...mockItems.slice(6)].slice(0, 6);
       <section>
         <h2 className="text-2xl mb-6">Browse Categories</h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
           {mockCategories.map((category) => (
             <CategoryCard key={category.id} category={category} />
           ))}
