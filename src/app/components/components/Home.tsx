@@ -76,7 +76,7 @@ const recentItems = [...databaseItems, ...mockItems.slice(6)].slice(0, 6);
       <section>
         <h2 className="text-2xl mb-6">Browse Categories</h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
           {mockCategories.map((category) => (
             <CategoryCard key={category.id} category={category} />
           ))}
@@ -90,7 +90,7 @@ const recentItems = [...databaseItems, ...mockItems.slice(6)].slice(0, 6);
             <h2 className="text-2xl">New Community Listings</h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {databaseItems.slice(0, 6).map((item) => (
               <ItemCard key={item.id} item={item} />
             ))}
@@ -108,7 +108,7 @@ const recentItems = [...databaseItems, ...mockItems.slice(6)].slice(0, 6);
         {loading ? (
           <p className="text-neutral-600">Loading items...</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {featuredItems.map((item) => (
               <ItemCard key={item.id} item={item} />
             ))}
@@ -120,7 +120,7 @@ const recentItems = [...databaseItems, ...mockItems.slice(6)].slice(0, 6);
       <section>
         <h2 className="text-2xl mb-6">Recently Added</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
           {recentItems.map((item) => (
             <ItemCard key={item.id} item={item} />
           ))}

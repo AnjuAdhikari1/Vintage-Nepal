@@ -1,4 +1,4 @@
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Item } from '../types';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
@@ -6,6 +6,7 @@ import { MapPin, Eye, Heart } from 'lucide-react';
 import { ImageDisplay } from './common/ImageDisplay';
 import { Button } from './ui/button';
 import { useFavorites } from '../../FavoritesContext';
+import { useAuth } from '../AuthContext';
 import { toast } from 'sonner';
 
 interface ItemCardProps {
@@ -13,6 +14,12 @@ interface ItemCardProps {
 }
 
 export function ItemCard({ item }: ItemCardProps) {
+  const navigate = useNavigate();
+
+  // Checks whether the user is logged in before saving favourites
+  const { isLoggedIn } = useAuth();
+
+  // Favourite functions come from the global favourites context
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
 
   const favorited = isFavorite(item.id);
@@ -20,6 +27,13 @@ export function ItemCard({ item }: ItemCardProps) {
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Guests can browse items, but they must login before saving favourites
+    if (!isLoggedIn) {
+      toast.error('Please login to add items to your favorites');
+      navigate('/login');
+      return;
+    }
 
     if (favorited) {
       removeFromFavorites(item.id);
@@ -70,6 +84,7 @@ export function ItemCard({ item }: ItemCardProps) {
           <p className="text-xl font-bold text-orange-600">
             NPR {item.price.toLocaleString()}
           </p>
+
           <Badge variant="outline" className="capitalize">
             {item.condition}
           </Badge>
@@ -80,18 +95,23 @@ export function ItemCard({ item }: ItemCardProps) {
             <MapPin className="size-3" />
             <span className="line-clamp-1">{item.location}</span>
           </div>
+
           <div className="flex items-center gap-1">
             <Eye className="size-3" />
-            <span>{item.views}</span>
+            <span>{item.views || 0}</span>
           </div>
         </div>
 
-        <Link to={`/profile/${item.sellerId}`} className="flex items-center gap-2 pt-2 border-t">
+        <Link
+          to={`/profile/${item.sellerId}`}
+          className="flex items-center gap-2 pt-2 border-t"
+        >
           <ImageDisplay
             src={item.sellerAvatar}
             alt={item.sellerName}
             className="size-6 rounded-full object-cover"
           />
+
           <span className="text-sm text-neutral-600 hover:text-orange-500 transition">
             {item.sellerName}
           </span>

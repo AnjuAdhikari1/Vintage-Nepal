@@ -42,7 +42,12 @@ export function SellItem() {
       navigate('/login');
       return;
     }
-
+// Only seller accounts can list items
+if (user.accountType !== 'seller') {
+  toast.error('Only seller accounts can list items. Please create a seller account.');
+  navigate('/signup');
+  return;
+}
     if (
       !formData.title ||
       !formData.description ||

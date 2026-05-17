@@ -65,7 +65,7 @@ export function Login() {
         toast.error('Invalid email or password');
       }
     } catch (error) {
-      toast.error('Account not found. Please create an account first.');
+      toast.error('Invalid email or password');
     } finally {
       setIsLoading(false);
     }

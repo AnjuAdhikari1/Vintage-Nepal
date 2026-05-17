@@ -9,16 +9,26 @@ import { mockItems } from '../mockData';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
 import { ImageDisplay } from './common/ImageDisplay';
-import { MapPin, Eye, Heart, MessageCircle, ArrowLeft, AlertCircle, ShoppingCart } from 'lucide-react';
+import {
+  MapPin,
+  Eye,
+  Heart,
+  MessageCircle,
+  ArrowLeft,
+  AlertCircle,
+  ShoppingCart,
+} from 'lucide-react';
 import { Separator } from './ui/separator';
 import { toast } from 'sonner';
 import { useCart } from '../CartContext';
 import { useFavorites } from '../../FavoritesContext';
+import { useAuth } from '../AuthContext';
 
 export function ItemDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const { isLoggedIn } = useAuth();
   const { addToCart } = useCart();
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites();
 
@@ -80,10 +90,13 @@ export function ItemDetails() {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <AlertCircle className="size-12 text-neutral-400 mx-auto mb-4" />
+
         <h2 className="text-2xl mb-2">Item not found</h2>
+
         <p className="text-neutral-600 mb-6">
           The item you're looking for doesn't exist or has been removed.
         </p>
+
         <Link to="/">
           <Button>Back to Home</Button>
         </Link>
@@ -97,11 +110,41 @@ export function ItemDetails() {
     .filter((i) => i.category === item.category && i.id !== item.id)
     .slice(0, 3);
 
+  const handleFavoriteClick = () => {
+    // Guests can view items, but must login before saving favorites
+    if (!isLoggedIn) {
+      toast.error('Please login to add items to your favorites');
+      navigate('/login');
+      return;
+    }
+
+    if (favorited) {
+      removeFromFavorites(item.id);
+      toast.success(`Removed "${item.title}" from favorites`);
+    } else {
+      addToFavorites(item);
+      toast.success(`Added "${item.title}" to favorites`);
+    }
+  };
+
   const handleContact = () => {
+    if (!isLoggedIn) {
+      toast.error('Please login to contact the seller');
+      navigate('/login');
+      return;
+    }
+
     toast.success('Message sent to seller');
   };
 
   const handleAddToCart = () => {
+    // Guests can browse products, but must login before adding to cart
+    if (!isLoggedIn) {
+      toast.error('Please login to add items to your cart');
+      navigate('/login');
+      return;
+    }
+
     addToCart(item);
     toast.success('Added to cart');
   };
@@ -140,15 +183,7 @@ export function ItemDetails() {
                 <Button
                   size="icon"
                   variant="outline"
-                  onClick={() => {
-                    if (favorited) {
-                      removeFromFavorites(item.id);
-                      toast.success(`Removed "${item.title}" from favorites`);
-                    } else {
-                      addToFavorites(item);
-                      toast.success(`Added "${item.title}" to favorites`);
-                    }
-                  }}
+                  onClick={handleFavoriteClick}
                   className={favorited ? 'text-red-500' : ''}
                 >
                   <Heart className={`size-5 ${favorited ? 'fill-current' : ''}`} />
@@ -191,6 +226,7 @@ export function ItemDetails() {
           {/* Description */}
           <div>
             <h2 className="text-xl mb-3">Description</h2>
+
             <p className="text-neutral-700 whitespace-pre-line leading-relaxed">
               {item.description}
             </p>
