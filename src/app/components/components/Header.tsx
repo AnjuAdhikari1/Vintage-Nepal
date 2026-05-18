@@ -197,7 +197,7 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent>
-                <div className="fixed inset-0 bg-white z-50 shadow-xl">
+                <div className="flex flex-col gap-4 mt-8 bg-white">
                   <Link to="/sell">
                     <Button variant="ghost" className="w-full justify-start">
                       <Plus className="size-4 mr-2" />
