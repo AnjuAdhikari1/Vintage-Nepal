@@ -162,16 +162,34 @@ export function ItemDetails() {
       </Button>
 
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* Image Gallery */}
-        <div className="space-y-4">
-          <div className="aspect-square rounded-xl overflow-hidden bg-neutral-100">
-            <ImageDisplay
-              src={item.images?.[0]}
-              alt={item.title}
-              className="size-full object-cover"
-            />
-          </div>
+        {/* Image Gallery - shows all uploaded item photos */}
+<div className="space-y-4">
+  <div className="aspect-square rounded-xl overflow-hidden bg-neutral-100">
+    <ImageDisplay
+      src={item.images?.[0]}
+      alt={item.title}
+      className="size-full object-cover"
+    />
+  </div>
+
+  {/* Small thumbnails for extra images */}
+  {item.images && item.images.length > 1 && (
+    <div className="grid grid-cols-4 gap-3">
+      {item.images.map((image, index) => (
+        <div
+          key={index}
+          className="aspect-square rounded-lg overflow-hidden bg-neutral-100 border"
+        >
+          <ImageDisplay
+            src={image}
+            alt={`${item.title} photo ${index + 1}`}
+            className="size-full object-cover"
+          />
         </div>
+      ))}
+    </div>
+  )}
+</div>
 
         {/* Item Details */}
         <div className="space-y-6">

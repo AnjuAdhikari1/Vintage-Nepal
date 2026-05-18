@@ -36,18 +36,21 @@ interface AuthContextType {
   signup: (data: SignupData) => Promise<boolean>;
   logout: () => Promise<void>;
   updateVerificationStatus: (status: 'pending' | 'approved' | 'rejected') => Promise<void>;
+  updateAvatar: (avatarUrl: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Default profile image used when a user first creates an account
 const defaultAvatar =
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400';
+  'https://ui-avatars.com/api/?name=Vintage+Nepal&background=f97316&color=fff';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
+    // Keeps the user logged in after page refresh
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (!firebaseUser) {
@@ -56,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
+        // Loads the user's profile details from Firestore
         const userRef = doc(db, 'users', firebaseUser.uid);
         const userSnap = await getDoc(userRef);
 
@@ -87,16 +91,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name: data.name,
       email: data.email,
       phone: data.phone,
-      avatar: defaultAvatar,
+
+      // Gives each new user a simple avatar based on their name
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        data.name
+      )}&background=f97316&color=fff`,
+
       accountType: data.accountType,
       isVerifiedSeller: data.accountType === 'buyer',
       verificationStatus: data.accountType === 'seller' ? 'none' : 'approved',
       joinedDate: new Date().toISOString(),
     };
 
+    // Saves the new user's profile in Firestore
     await setDoc(doc(db, 'users', credential.user.uid), newUser);
-    setUser(newUser);
 
+    setUser(newUser);
     return true;
   };
 
@@ -130,12 +140,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isVerifiedSeller: status === 'approved',
     };
 
+    // Updates seller verification status in Firestore
     await updateDoc(doc(db, 'users', user.id), {
       verificationStatus: status,
       isVerifiedSeller: status === 'approved',
     });
 
     setUser(updatedUser);
+  };
+
+  const updateAvatar = async (avatarUrl: string) => {
+    if (!user) return;
+
+    // Saves the uploaded profile image URL in Firestore
+    await updateDoc(doc(db, 'users', user.id), {
+      avatar: avatarUrl,
+    });
+
+    // Updates the profile picture immediately on the page
+    setUser({
+      ...user,
+      avatar: avatarUrl,
+    });
   };
 
   return (
@@ -148,6 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signup,
         logout,
         updateVerificationStatus,
+        updateAvatar,
       }}
     >
       {children}

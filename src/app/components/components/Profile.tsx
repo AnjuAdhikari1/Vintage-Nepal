@@ -24,6 +24,7 @@ import {
   AlertCircle,
   Mail,
   Phone,
+  Upload,
 } from 'lucide-react';
 import { ItemCard } from './ItemCard';
 import { Button } from './ui/button';
@@ -41,11 +42,19 @@ interface FirestoreUser {
   joinedDate: string;
 }
 
+const CLOUD_NAME = 'dlsuczysy';
+const UPLOAD_PRESET = 'vintage Nepal uploads';
+
 export function Profile() {
   const { userId } = useParams();
   const navigate = useNavigate();
 
-  const { user: loggedInUser, isLoggedIn, isAuthLoading } = useAuth();
+  const {
+    user: loggedInUser,
+    isLoggedIn,
+    isAuthLoading,
+    updateAvatar,
+  } = useAuth();
 
   const isMyProfile = userId === 'me';
 
@@ -56,6 +65,9 @@ export function Profile() {
   const [firestoreItems, setFirestoreItems] = useState<Item[]>([]);
 
   const [loadingFirestoreProfile, setLoadingFirestoreProfile] = useState(false);
+
+  // Used while profile picture is uploading
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   useEffect(() => {
     if (!isAuthLoading && isMyProfile && !isLoggedIn) {
@@ -115,6 +127,43 @@ export function Profile() {
     fetchFirestoreProfile();
   }, [userId, isMyProfile]);
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    try {
+      setIsUploadingAvatar(true);
+
+      // Upload selected profile image to Cloudinary
+      const data = new FormData();
+      data.append('file', file);
+      data.append('upload_preset', UPLOAD_PRESET);
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: data,
+        }
+      );
+
+      const uploadedImage = await response.json();
+
+      if (!response.ok) {
+        throw new Error(uploadedImage.error?.message || 'Avatar upload failed');
+      }
+
+      // Save the Cloudinary image URL to this user's Firestore profile
+      await updateAvatar(uploadedImage.secure_url);
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      alert('Profile picture upload failed. Please try again.');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   if (isAuthLoading && isMyProfile) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -132,11 +181,31 @@ export function Profile() {
         <Card className="mb-8">
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row gap-6">
-              <ImageDisplay
-                src={loggedInUser.avatar}
-                alt={loggedInUser.name}
-                className="size-24 rounded-full object-cover"
-              />
+              <div className="flex flex-col items-center gap-3">
+                <ImageDisplay
+                  src={loggedInUser.avatar}
+                  alt={loggedInUser.name}
+                  className="size-24 rounded-full object-cover"
+                />
+
+                {/* Only the logged-in user can update their own profile picture */}
+                <label className="cursor-pointer">
+                  <Button type="button" variant="outline" size="sm" asChild>
+                    <span>
+                      <Upload className="size-4 mr-2" />
+                      {isUploadingAvatar ? 'Uploading...' : 'Change Photo'}
+                    </span>
+                  </Button>
+
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                    disabled={isUploadingAvatar}
+                  />
+                </label>
+              </div>
 
               <div className="flex-1">
                 <h1 className="text-2xl mb-2">{loggedInUser.name}</h1>
@@ -190,7 +259,7 @@ export function Profile() {
                 <div className="mt-6 flex gap-3">
                   {loggedInUser.accountType === 'seller' && (
                     <Link to="/my-listings">
-                      <Button>My Listings</Button>
+                      <Button variant="outline">My Listings</Button>
                     </Link>
                   )}
 
@@ -411,10 +480,13 @@ export function Profile() {
   return (
     <div className="container mx-auto px-4 py-12 text-center">
       <AlertCircle className="size-12 text-neutral-400 mx-auto mb-4" />
+
       <h2 className="text-2xl mb-2">User not found</h2>
+
       <p className="text-neutral-600 mb-6">
         The user profile you're looking for doesn't exist.
       </p>
+
       <Link to="/">
         <Button>Back to Home</Button>
       </Link>
